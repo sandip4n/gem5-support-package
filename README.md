@@ -61,7 +61,7 @@ dist/
 
 ```
 
-This [archive]() contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob.
+This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob.
 
 To execute the full system mode in `fast` mode.
 ```
