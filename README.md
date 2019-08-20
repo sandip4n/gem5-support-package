@@ -1,30 +1,29 @@
-# Booting OPAL firmware + Linux Kernel on gem5
+# Booting OPAL firmware and Linux kernel on gem5
 
-The below documentation is for bringing up a full system running the OPAL firmware + Linux running a simple userspace shell program.
+This describes the steps for setting up a full system simulation environment for booting the OPAL firmware followed by the Linux kernel and eventually running a simple userspace shell program.
 
 
-All of the executable binaries for the linux and skiboot firmware can be found [here](#), to boot the OS right away jump [here](#running-gem5).
+All of the executable binaries for the linux and skiboot firmware can be found in this [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z), to boot the OS right away jump [here](#running-gem5).
 
 To compile from scratch use the corresponding repositories on [power-gem5](https://github.com/power-gem5) and continue reading.
 
-## Compiling the device tree 
-A minimal [device tree source](#) has been created and can be converted to a device tree blob using :  
+## Building the device tree blob
+A minimal device tree source (which can be found in this [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z)) has been created and can be converted to a device tree blob using:
 
 ```
 $ dtc -I dts -O dtb -o devicetree_file_name.dtb devicetree_file_name.dts
 ```
 
-## Compiling Linux Kernel
+## Building the Linux kernel
 Clone the kernel [source](https://github.com/power-gem5/linux/) and checkout to the `gem5-experimental` branch.
-
-Make sure you have the cross compiler installed for powerpc and that you compile the kernel in `Big Endian` mode.
+Make sure you have the cross compiler installed for powerpc64 and that you compile the kernel in `Big Endian` mode.
 
 ```
 $ make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- gem5_defconfig
 $ make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- -j16
 ```
 
-## Compiling Skiboot
+## Building the OPAL firmware
 Clone the firmware [source](https://github.com/power-gem5/skiboot) and checkout to the `gem5-experimental` branch.
 
 Make sure this too needs to be compiled in the `Big Endian` mode. 
@@ -33,7 +32,7 @@ Make sure this too needs to be compiled in the `Big Endian` mode.
 $ make CROSS_COMPILE=powerpc64-linux-gnu- -j16
 ```
 
-## Compiling gem5 for POWER
+## Building gem5
 Clone the gem5 [source](https://github.com/power-gem5/gem5) and checkout to the `gem5-experimental` branch.
 ```
 $ scons CPU_MODELS="AtomicSimpleCPU" build/POWER/gem5.fast -j16
@@ -41,10 +40,9 @@ $ scons CPU_MODELS="AtomicSimpleCPU" build/POWER/gem5.fast -j16
 
 For relevant packages and a complete walkthrough of compilation can be found [here](http://learning.gem5.org/book/part1/building.html)
 
-<a name="running-gem5"></a>
-##Running gem5
+## Running gem5
 
-A folder hierarchy must be maintained in the root folder of the gem5 source.
+A specific hierarchy must be maintained in the root directory of the gem5 source.
 
 ```
 dist/
@@ -61,7 +59,7 @@ dist/
 
 ```
 
-This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob.
+This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob. Everthing is organised in the same directory hierarchy shown above.
 
 To execute the full system mode in `fast` mode.
 ```
@@ -74,9 +72,9 @@ A console device also exists for POWER and can be connected to using
 $ telnet localhost 3456
 ```
 
-## Remote Debugging in Gem-5
+## Remote Debugging in gem5
 
-Remote debugging functionality to help debug the workload running in gem-5.
+Remote debugging functionality to help debug the workload running in gem5.
 
 Steps to attach the remote gdb are as follows:-
 > Note: The distro-provided gdb might not come with support for debugging binaries of different architectures. So you may have to install `gdb-multiarch` (or a similar flavor of it).
