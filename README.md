@@ -70,7 +70,7 @@ The firmware, device tree and kernel binaries are all placed here. For the simul
 $ touch linux-latest.img
 ```
 
-This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob. Everthing is organised in the same directory hierarchy shown above. For example, if the `gem5` sources are at `/home/some-user/some-path/gem5`, then the `dist` directory must be copied to `/home/some-user/some-path/gem5/dist`.
+This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob. Everthing is organised in the same directory hierarchy shown above.
 
 To execute the full system mode in `fast` mode.
 ```
