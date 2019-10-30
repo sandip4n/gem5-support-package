@@ -50,7 +50,7 @@ For relevant packages and a complete walkthrough of compilation can be found [he
 
 ## Running gem5
 
-A specific hierarchy must be maintained in the root directory of the gem5 source.
+Before running the simulator, a distribution directory needs to be set up with the following hierarchy.
 
 ```
 dist/
@@ -64,10 +64,13 @@ dist/
         │   ├── skiboot.elf
         └── disks
             ├── linux-latest.img
-
+```
+The firmware, device tree and kernel binaries are all placed here. For the simulator to be able to recognize and load the binaries from this path, the `M5_PATH` environment variable needs to point to this. We currently do not support disk images although the simulator expects to find one. A workaround here is to just create a dummy `linux-latest.img` in the correct path as shown above using the `touch` command.
+```sh
+$ touch linux-latest.img
 ```
 
-This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob. Everthing is organised in the same directory hierarchy shown above.
+This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob. Everthing is organised in the same directory hierarchy shown above. For example, if the `gem5` sources are at `/home/some-user/some-path/gem5`, then the `dist` directory must be copied to `/home/some-user/some-path/gem5/dist`.
 
 To execute the full system mode in `fast` mode.
 ```
