@@ -13,6 +13,14 @@ A minimal device tree source (which can be found in this [archive](https://githu
 ```
 $ dtc -I dts -O dtb -o devicetree_file_name.dtb devicetree_file_name.dts
 ```
+A pre-requisite here is to have the device tree compiler (`dtc`) installed. This can be done easily in commonly used distros as shown below.
+```
+# For Ubuntu
+$ sudo apt-get install device-tree-compiler
+
+# For Fedora
+$ sudo dnf install dtc
+```
 
 ## Building the Linux kernel
 Clone the kernel [source](https://github.com/power-gem5/linux/) and checkout to the `gem5-experimental` branch.
