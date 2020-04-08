@@ -1,56 +1,51 @@
-# Booting OPAL firmware and Linux kernel on gem5
+# Booting Linux for POWER on gem5
 
-This describes the steps for setting up a full system simulation environment for booting the OPAL firmware followed by the Linux kernel and eventually running a simple userspace shell program.
+This describes the process of setting up a full system simulation environment
+for booting bare-metal Linux on the gem5 simulator. This includes running the
+OpenPower Abstraction Layer (OPAL) firmware followed by the Linux kernel and
+eventually dropping to a simple userspace shell program.
 
+## Setup Build Environment
 
-All of the executable binaries for the linux and skiboot firmware can be found in this [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z), to boot the OS right away jump [here](#running-gem5).
+To be able to run the simulations, the firmware, kernel and simulator need to
+be built from sources. The source code for each of these components can be
+cloned from the repositories under [power-gem5](https://github.com/power-gem5).
 
-To compile from scratch use the corresponding repositories on [power-gem5](https://github.com/power-gem5) and continue reading.
+### Install Prerequisites
 
-## Building the device tree blob
-A minimal device tree source (which can be found in this [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z)) has been created and can be converted to a device tree blob using:
+Building each of the components requires certain tools and libraries to be
+available. This shows how they can be installed on popular distributions.
 
-```
-$ dtc -I dts -O dtb -o devicetree_file_name.dtb devicetree_file_name.dts
-```
-A pre-requisite here is to have the device tree compiler (`dtc`) installed. This can be done easily in commonly used distros as shown below.
-```
-# For Ubuntu
-$ sudo apt-get install device-tree-compiler
-
-# For Fedora
-$ sudo dnf install dtc
-```
-
-## Building the Linux kernel
-Clone the kernel [source](https://github.com/power-gem5/linux/) and checkout to the `gem5-experimental` branch.
-Make sure you have the cross compiler installed for powerpc64 and that you compile the kernel in `Big Endian` mode.
+#### Ubuntu
 
 ```
-$ make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- gem5_defconfig
-$ make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- -j16
+sudo apt update
+sudo apt install build-essential git m4 scons zlib1g zlib1g-dev     \
+                 libprotobuf-dev protobuf-compiler libprotoc-dev    \
+                 libgoogle-perftools-dev python-dev python expect   \
+                 flex bison libncurses-dev openssl libssl-dev       \
+                 libelf-dev autoconf xz-utils device-tree-compiler  \
+                 gcc-powerpc64-linux-gnu gdb-multiarch valgrind     \
+                 telnet
 ```
 
-## Building the OPAL firmware
-Clone the firmware [source](https://github.com/power-gem5/skiboot) and checkout to the `gem5-experimental` branch.
-
-Make sure this too needs to be compiled in the `Big Endian` mode. 
+#### Fedora
 
 ```
-$ make CROSS_COMPILE=powerpc64-linux-gnu- -j16
+sudo dnf update
+sudo dnf install gcc gcc-c++ git make m4 python2-scons zlib-devel     \
+                 protobuf-devel protobuf-compiler gperftools-devel    \
+                 python2-devel expect flex bison diffutils findutils  \
+                 ncurses-devel openssl-devel elfutils-libelf-devel    \
+                 autoconf dtc gcc-powerpc64-linux-gnu valgrind-devel  \
+                 binutils-powerpc64-linux-gnu gdb xz telnet
 ```
 
-## Building gem5
-Clone the gem5 [source](https://github.com/power-gem5/gem5) and checkout to the `gem5-experimental` branch.
-```
-$ scons CPU_MODELS="AtomicSimpleCPU" build/POWER/gem5.fast -j16
-```
+### Build Support Package
 
-For relevant packages and a complete walkthrough of compilation can be found [here](http://learning.gem5.org/book/part1/building.html)
-
-## Running gem5
-
-Before running the simulator, a distribution directory needs to be set up with the following hierarchy.
+We will start with building the device tree blob and setting up the support
+package under a distribution directory that must have the following hierarchy
+to be able to run the gem5 simulator in full-system mode.
 
 ```
 dist/
@@ -61,40 +56,129 @@ dist/
         │   ├── objdump_vmlinux
         │   ├── objdump_skiboot
         │   ├── vmlinux
-        │   ├── skiboot.elf
+        │   └── skiboot.elf
         └── disks
-            ├── linux-latest.img
-```
-The firmware, device tree and kernel binaries are all placed here. For the simulator to be able to recognize and load the binaries from this path, the `M5_PATH` environment variable needs to point to this. We currently do not support disk images although the simulator expects to find one. A workaround here is to just create a dummy `linux-latest.img` in the correct path as shown above using the `touch` command.
-```sh
-$ touch linux-latest.img
+            └── linux-latest.img
 ```
 
-This [archive](https://github.com/power-gem5/gem5-support-package/raw/master/gem5-support-package.7z) contains a compiled linux kernel image with a built in initramfs shell, image of the firmware along with it's respective objdump and a minimal device tree blob. Everthing is organised in the same directory hierarchy shown above.
+The path to this directory must be part of the `M5_PATH` environment variable
+to make its contents accessible to the gem5 simulator. This also contains an
+`initramfs` image that will embedded into the `vmlinux` binary upon building
+the kernel.
 
-To execute the full system mode in `fast` mode.
-```
-$ ./build/POWER/gem5.fast configs/example/fs.py
-```
-
-A console device also exists for POWER and can be connected to using 
-
-```
-$ telnet localhost 3456
-```
-
-## Remote Debugging in gem5
-
-Remote debugging functionality to help debug the workload running in gem5.
-
-Steps to attach the remote gdb are as follows:-
-> Note: The distro-provided gdb might not come with support for debugging binaries of different architectures. So you may have to install `gdb-multiarch` (or a similar flavor of it).
+The device tree blob can be built and `M5_PATH` can be set as shown below.
+For convenience, once all of the components are built, `.bashrc` can be
+modified to setup `M5_PATH` automatically.
 
 ```
-file vmlinux
-set directories linux/
-set remote Z-packet on
-set step-mode on
-target remote localhost:7000
+git clone https://github.com/power-gem5/gem5-support-package.git
+export M5_PATH=$(pwd)/gem5-support-package/dist/m5/system
+cd gem5-support-package
+dtc -I dts -O dtb -o $M5_PATH/binaries/gem5-power9-fs.dtb $M5_PATH/binaries/gem5-power9-fs.dts
+cd ../
 ```
 
+### Build Firmware
+
+The `skiboot` firmware binary provides the OpenPower Abstraction Layer (OPAL)
+runtime services. This is also the component with which the simulator starts
+execution and this eventually hands-off control to the kernel. Some hacks and
+workarounds were required to get the firmware up and running on the simulator.
+We will be switching to the sources under the `gem5-experimental` branch which
+contain these changes. The firmware binary can be built and copied to the
+distribution directory as shown below. A cross compiler is used here since the
+binary is targeted for `powerpc64` big-endian systems.
+
+```
+git clone https://github.com/power-gem5/skiboot.git
+cd skiboot
+git checkout gem5-experimental
+make CROSS=powerpc64-linux-gnu- -j4
+powerpc64-linux-gnu-objdump -D skiboot.elf | tee $M5_PATH/binaries/objdump_skiboot 2>&1 > /dev/null
+cp skiboot.elf $M5_PATH/binaries/
+cd ../
+```
+
+### Build Kernel
+
+Like the firmware, the kernel also needs to be cross-compiled. This also has
+some hacks and workaround for getting things like the virtual serial console
+working. This is why we need to switch to the `gem5-experimental` branch.
+The `vmlinux` binary can be built and copied to the distribution directory as
+shown below. The simulator also requires an `objdump` of the binary.
+
+```
+git clone https://github.com/power-gem5/linux.git
+cd linux
+git checkout gem5-experimental
+make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- gem5_defconfig
+make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- -j4 vmlinux
+powerpc64-linux-gnu-objdump -D vmlinux | tee $M5_PATH/binaries/objdump_vmlinux 2>&1 > /dev/null
+cp vmlinux $M5_PATH/binaries/
+cd ../
+```
+
+### Build Simulator
+
+Finally, we will be building the gem5 simulator, or specifically, the `fast`
+variant of the simulator which increases the simulation speed significantly
+by avoiding detailed tracing. The official upstream sources of the simulator
+currently supports running only simple 32-bit big-endian userspace binaries
+in syscall emulation mode. For full-system simulation to work, we need to
+switch to the `gem5-experimental` branch. The simulator can be built as shown
+below.
+
+```
+git clone https://github.com/power-gem5/gem5.git
+cd gem5
+ln -s $M5_PATH/../../ dist
+git checkout gem5-experimental
+scons CPU_MODELS="AtomicSimpleCPU" build/POWER/gem5.fast -j4
+```
+
+> N.B. On Fedora, use `scons-2` provided by the `python2-scons` package.
+
+If detailed tracing is required, the `debug` variant of the simulator can be
+built although simulation will be far slower.
+
+## Run Simulation
+
+A full-system simulation can be started in `fast` mode as shown below.
+
+```
+./build/POWER/gem5.fast configs/example/fs.py
+```
+
+For `debug` mode with detailed per-instruction traces, the simulation can be
+run as shown below. This will require the `debug` variant of simulator to be
+built and available.
+
+```
+./build/POWER/gem5.debug --debug-flags=ExecAll,Registers configs/example/fs.py
+```
+
+After the simulation starts, users can connect to a `telnet`-based virtual
+serial console to view the kernel boot logs.
+
+```
+telnet localhost 3456
+```
+
+### Debug Kernel
+
+The gem5 simulator has a remote debugging facility with which users can step
+through and inspect the workload running in the simulator. This is done using
+remote `gdb` sessions. Once the simulation has started, a debugger instance
+can be attached to it from the `gdb` console as shown below.
+
+```
+(gdb) file $M5_PATH/binaries/vmlinux
+(gdb) set directories $M5_PATH/../../../../linux/
+(gdb) set remote Z-packet on
+(gdb) set step-mode on
+(gdb) target remote localhost:7000
+```
+
+> N.B. The distribution-provided `gdb` package might not come with support
+  for debugging `powerpc64` binaries. So `gdb-multiarch` (or a similar
+  flavour of it) is required.
