@@ -1,0 +1,72 @@
+/dts-v1/;
+
+/ {
+	compatible = "ibm,powernv";
+	model = "BML";
+	#size-cells = < 0x02 >;
+	#address-cells = < 0x02 >;
+
+	chosen {
+		linux,platform = < 0x100 >;
+		stdout-path = "/soc8544@e0000000/serial@0";
+	};
+
+	soc8544@e0000000 {
+		#address-cells = < 0x02 >;
+		#size-cells = < 0x02 >;
+		device_type = "soc";
+		ranges = < 0x00 0x00 0x00 0xffff0001 0x00 0x100000 >;
+		bus-frequency = < 0x00 >;
+		compatible = "fsl,mpc8544-immr\0simple-bus";
+
+		serial@0 {
+			cell-index = < 0x00 >;
+			device_type = "serial";
+			compatible = "fsl,ns16550\0ns16550";
+			reg = < 0x00 0x4504 0x00 0x100 >;
+			clock-frequency = < 0x00 >;
+		};
+	};
+
+	gem5 {
+	};
+
+	memory@0 {
+		reg = < 0x00 0x00 0x00 0x80000000 >;
+		ibm,chip-id = < 0x00 >;
+		device_type = "memory";
+	};
+
+	cpus {
+		#size-cells = < 0x00 >;
+		#address-cells = < 0x01 >;
+
+		PowerPC,POWER9@0 {
+			status = "okay";
+			timebase-frequency = < 0x2625a0 >;
+			clock-frequency = < 0x98968 >;
+			ibm,processor-segment-sizes = < 0x1c 0xffffffff 0xffffffff 0xffffffff >;
+			ibm,pa-features = < 0x4000f63f 0xc70080c0 0x80000000 0x00 0x8000 0x80008000 0x80008000 0x80008000 0x80008000 0xc0008000 0x80008000 0x80008000 0x80008000 0x80008000 0x80008000 0x80008000 0x80000000 0x00 >;
+			ibm,chip-id = < 0x00 >;
+			ibm,pir = < 0x00 >;
+			i-cache-size = < 0x8000 >;
+			d-cache-size = < 0x8000 >;
+			i-cache-line-size = < 0x80 >;
+			d-cache-line-size = < 0x80 >;
+			ibm,slb-size = < 0x20 >;
+			ibm,ppc-interrupt-server#s = < 0x00 >;
+			reg = < 0x00 >;
+			device_type = "cpu";
+		};
+	};
+
+	interrupt-controller@3FFFF80008000 {
+		compatible = "IBM,ppc-xicp";
+		device_type = "PowerPC-External-Interrupt-Presentation";
+		#interrupt-cells = < 0x01 >;
+		#address-cells = < 0x00 >;
+		reg = < 0x3ffff 0x80008000 0x00 0x1000 >;
+		ibm,interrupt-server-ranges = < 0x00 0x01 >;
+		interrupt-controller;
+	};
+};
