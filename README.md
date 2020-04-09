@@ -26,7 +26,7 @@ sudo apt install build-essential git m4 scons zlib1g zlib1g-dev     \
                  flex bison libncurses-dev openssl libssl-dev       \
                  libelf-dev autoconf xz-utils device-tree-compiler  \
                  gcc-powerpc64-linux-gnu gdb-multiarch valgrind     \
-                 telnet
+                 telnet bc
 ```
 
 #### Fedora
@@ -38,7 +38,7 @@ sudo dnf install gcc gcc-c++ git make m4 python2-scons zlib-devel     \
                  python2-devel expect flex bison diffutils findutils  \
                  ncurses-devel openssl-devel elfutils-libelf-devel    \
                  autoconf dtc gcc-powerpc64-linux-gnu valgrind-devel  \
-                 binutils-powerpc64-linux-gnu gdb xz telnet
+                 binutils-powerpc64-linux-gnu gdb xz telnet bc
 ```
 
 ### Build Support Package
