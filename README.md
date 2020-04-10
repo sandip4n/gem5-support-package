@@ -38,7 +38,7 @@ sudo dnf install gcc gcc-c++ git make m4 python2-scons zlib-devel     \
                  python2-devel expect flex bison diffutils findutils  \
                  ncurses-devel openssl-devel elfutils-libelf-devel    \
                  autoconf dtc gcc-powerpc64-linux-gnu valgrind-devel  \
-                 binutils-powerpc64-linux-gnu gdb xz telnet bc
+                 binutils-powerpc64-linux-gnu gdb xz telnet bc which
 ```
 
 ### Build Support Package
