@@ -27,6 +27,7 @@ sudo apt install build-essential git m4 scons zlib1g zlib1g-dev     \
                  libelf-dev autoconf xz-utils device-tree-compiler  \
                  gcc-powerpc64-linux-gnu gdb-multiarch valgrind     \
                  telnet bc
+export PPC64_CROSS=powerpc64-linux-gnu-
 ```
 
 #### Fedora
@@ -39,6 +40,43 @@ sudo dnf install gcc gcc-c++ git make m4 python2-scons zlib-devel     \
                  ncurses-devel openssl-devel elfutils-libelf-devel    \
                  autoconf dtc gcc-powerpc64-linux-gnu valgrind-devel  \
                  binutils-powerpc64-linux-gnu gdb xz telnet bc which
+export PPC64_CROSS=powerpc64-linux-gnu-
+```
+
+#### Arch
+
+```
+sudo pacman -Su
+sudo pacman -S gcc git make m4 zlib protobuf gperftools python2       \
+               expect flex bison gettext diffutils findutils ncurses  \
+               openssl libelf autoconf dtc valgrind xz inetutils bc   \
+               which
+```
+
+Arch does not provide standard packages for a `powerpc64` cross toolchain.
+Instead we will have to use a pre-built toolchain from
+[toolchains.bootlin.com](https://toolchains.bootlin.com).
+This can be downloaded and setup as shown below. The link used here points to
+the latest available build at the time of writing. Check
+[this](https://toolchains.bootlin.com/releases_powerpc64-power8.html)
+page for links to the latest version.
+
+```
+curl -OLJ https://toolchains.bootlin.com/downloads/releases/toolchains/powerpc64-power8/tarballs/powerpc64-power8--glibc--stable-2020.02-2.tar.bz2
+tar xjf powerpc64-power8--glibc--stable-2020.02-2.tar.bz2
+export PATH=$PATH:$(pwd)/powerpc64-power8--glibc--stable-2020.02-2/bin
+export PPC64_CROSS=powerpc64-buildroot-linux-gnu-
+```
+
+To build gem5, we will need to use a `python-2.7.x` compliant `scons`. This
+is also unavailable from the standard packages. So we will be using a `pip`
+environment to run `scons`.
+
+```
+pacman -S python2-pip
+pip2 install --user pipenv scons
+export PATH=$PATH:$HOME/.local/bin
+alias scons-2="pipenv run scons"
 ```
 
 ### Build Support Package
@@ -93,8 +131,8 @@ binary is targeted for `powerpc64` big-endian systems.
 git clone https://github.com/power-gem5/skiboot.git
 cd skiboot
 git checkout gem5-experimental
-make CROSS=powerpc64-linux-gnu- -j4
-powerpc64-linux-gnu-objdump -D skiboot.elf | tee $M5_PATH/binaries/objdump_skiboot 2>&1 > /dev/null
+make CROSS=${PPC64_CROSS} -j4
+${PPC64_CROSS}objdump -D skiboot.elf | tee $M5_PATH/binaries/objdump_skiboot 2>&1 > /dev/null
 cp skiboot.elf $M5_PATH/binaries/
 cd ../
 ```
@@ -111,9 +149,9 @@ shown below. The simulator also requires an `objdump` of the binary.
 git clone https://github.com/power-gem5/linux.git
 cd linux
 git checkout gem5-experimental
-make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- gem5_defconfig
-make ARCH=powerpc CROSS_COMPILE=powerpc64-linux-gnu- -j4 vmlinux
-powerpc64-linux-gnu-objdump -D vmlinux | tee $M5_PATH/binaries/objdump_vmlinux 2>&1 > /dev/null
+make ARCH=powerpc CROSS_COMPILE=${PPC64_CROSS} gem5_defconfig
+make ARCH=powerpc CROSS_COMPILE=${PPC64_CROSS} -j4 vmlinux
+${PPC64_CROSS}objdump -D vmlinux | tee $M5_PATH/binaries/objdump_vmlinux 2>&1 > /dev/null
 cp vmlinux $M5_PATH/binaries/
 cd ../
 ```
@@ -137,6 +175,7 @@ scons CPU_MODELS="AtomicSimpleCPU" build/POWER/gem5.fast -j4
 ```
 
 > N.B. On Fedora, use `scons-2` provided by the `python2-scons` package.
+  Similarly, on Arch, use the `scons-2` alias.
 
 If detailed tracing is required, the `debug` variant of the simulator can be
 built although simulation will be far slower.
