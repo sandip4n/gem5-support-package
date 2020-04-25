@@ -43,8 +43,8 @@
 
 		PowerPC,POWER9@0 {
 			status = "okay";
-			timebase-frequency = < 0x2625a0 >;
-			clock-frequency = < 0x98968 >;
+			timebase-frequency = < 0xf4240 >;
+			clock-frequency = < 0x5f5e100 >;
 			ibm,processor-segment-sizes = < 0x1c 0xffffffff 0xffffffff 0xffffffff >;
 			ibm,pa-features = < 0x4000f63f 0xc70080c0 0x80000000 0x00 0x8000 0x80008000 0x80008000 0x80008000 0x80008000 0xc0008000 0x80008000 0x80008000 0x80008000 0x80008000 0x80008000 0x80008000 0x80000000 0x00 >;
 			ibm,chip-id = < 0x00 >;
@@ -54,7 +54,7 @@
 			i-cache-line-size = < 0x80 >;
 			d-cache-line-size = < 0x80 >;
 			ibm,slb-size = < 0x20 >;
-			ibm,ppc-interrupt-server#s = < 0x00 >;
+			ibm,ppc-interrupt-server#s = < 0x00 0x01 >;
 			reg = < 0x00 >;
 			device_type = "cpu";
 		};
@@ -65,8 +65,8 @@
 		device_type = "PowerPC-External-Interrupt-Presentation";
 		#interrupt-cells = < 0x01 >;
 		#address-cells = < 0x00 >;
-		reg = < 0x3ffff 0x80008000 0x00 0x1000 >;
-		ibm,interrupt-server-ranges = < 0x00 0x01 >;
+		reg = < 0x3ffff 0x80008000 0x0 0x1000 0x3ffff 0x80009000 0x0 0x1000 >;
+		ibm,interrupt-server-ranges = < 0x00 0x02 >;
 		interrupt-controller;
 	};
 };
